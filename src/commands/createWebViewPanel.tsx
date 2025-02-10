@@ -8,7 +8,7 @@ export const createWebviewPanel = (
 ) => {
   let webviewCommand = vscode.commands.registerCommand(
     'NotionVsCode.openPanel',
-    () => {
+    async () => {
       const panel = vscode.window.createWebviewPanel(
         'webview',
         'React',
@@ -39,6 +39,21 @@ export const createWebviewPanel = (
         </body>
       </html>`;
 
+      const pages = await context.secrets.get('pages');
+      console.log('pages du secrets', pages);
+      if (!pages) {
+        console.log('pages, fetching');
+        const response = (await client.sendRequest(
+          'custom/GetNotionPageId'
+        )) as Array<string>;
+        console.log('response from server', response);
+        await context.secrets.store('pages', JSON.stringify(response));
+        panel.webview.postMessage({
+          response,
+          type: 'NotionPagesName',
+        });
+      }
+
       // Communication avec la WebView
       panel.webview.onDidReceiveMessage(async (message) => {
         if (message.command === 'RetrieveBlock') {
@@ -51,10 +66,11 @@ export const createWebviewPanel = (
           panel.webview.postMessage({ response });
         } else if (message.command === 'GetNotionPageId') {
           console.log('GetNotionPageId, message : ', message);
-          const response = await client.sendRequest('custom/GetNotionPageId', {
+          const response = (await client.sendRequest('custom/GetNotionPageId', {
             query: message.query,
-          });
+          })) as Array<string>;
           console.log('response from server', response);
+          await context.secrets.store('pages', JSON.stringify(response));
           panel.webview.postMessage({
             response,
             type: 'NotionPagesName',
