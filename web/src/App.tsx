@@ -13,15 +13,21 @@ function App() {
   const [blockId, setBlockId] = useState<string>('');
   const [pageIdRes, setPageIdRes] = useState<string>('');
   const [search, setSearch] = useState<string>('');
-  const [message, setMessage] = useState<string>('');
+  const [pageNames, setPageNames] = useState<string[]>([]);
 
   useEffect(() => {
     window.addEventListener('message', (event) => {
       const message = event.data;
       console.log('Réponse du serveur LSP:', message);
       if (message.pageId) setPageIdRes(message.pageId);
-      else if (message.type === 'NotionPagesName')
-        setMessage(message.response.join(', '));
+      else if (message.type === 'NotionPagesName') {
+        console.log('message received', message);
+        setPageNames(message.response);
+      }
+    });
+
+    vscode.postMessage({
+      command: 'init',
     });
 
     return () => {
@@ -32,7 +38,9 @@ function App() {
   return (
     <div className="grid gap-3 p-2 place-items-start">
       <h1>VS Code WebView</h1>
-      {message && <p>{message}</p>}
+      {pageNames.map((pageName, index) => (
+        <p key={index}>{pageName}</p>
+      ))}
       <RetrieveBlock
         setBlockId={setBlockId}
         blockId={blockId}

@@ -39,42 +39,53 @@ export const createWebviewPanel = (
         </body>
       </html>`;
 
-      const pages = await context.secrets.get('pages');
-      console.log('pages du secrets', pages);
-      if (!pages) {
-        console.log('pages, fetching');
-        const response = (await client.sendRequest(
-          'custom/GetNotionPageId'
-        )) as Array<string>;
-        console.log('response from server', response);
-        await context.secrets.store('pages', JSON.stringify(response));
-        panel.webview.postMessage({
-          response,
-          type: 'NotionPagesName',
-        });
-      }
-
       // Communication avec la WebView
       panel.webview.onDidReceiveMessage(async (message) => {
-        if (message.command === 'RetrieveBlock') {
-          console.log('message', message);
-          const token = await context.secrets.get('apiToken');
-          const response = await client.sendRequest('custom/RetrieveBlock', {
-            token: token,
-            blockId: message.blockId,
-          });
-          panel.webview.postMessage({ response });
-        } else if (message.command === 'GetNotionPageId') {
-          console.log('GetNotionPageId, message : ', message);
-          const response = (await client.sendRequest('custom/GetNotionPageId', {
-            query: message.query,
-          })) as Array<string>;
-          console.log('response from server', response);
-          await context.secrets.store('pages', JSON.stringify(response));
-          panel.webview.postMessage({
-            response,
-            type: 'NotionPagesName',
-          });
+        switch (message.command) {
+          case 'init':
+            const pages = await context.secrets.get('pages');
+            console.log('pages du secrets', pages);
+            if (pages) {
+              console.log('pages, already fetched', pages);
+              panel.webview.postMessage({
+                response: JSON.parse(pages),
+                type: 'NotionPagesName',
+              });
+            } else {
+              console.log('pages, fetching');
+              const response = (await client.sendRequest(
+                'custom/GetNotionPageId'
+              )) as Array<string>;
+              console.log('response from server', response);
+              await context.secrets.store('pages', JSON.stringify(response));
+              console.log('send postMessafge to webview');
+              panel.webview.postMessage({
+                response,
+                type: 'NotionPagesName',
+              });
+            }
+            break;
+          case 'RetrieveBlock':
+            console.log('message', message);
+            const token = await context.secrets.get('apiToken');
+            const blocks = await client.sendRequest('custom/RetrieveBlock', {
+              token: token,
+              blockId: message.blockId,
+            });
+            panel.webview.postMessage({ response: blocks });
+            break;
+          case 'GetNotionPageId':
+            console.log('GetNotionPageId, message : ', message);
+            const pageId = (await client.sendRequest('custom/GetNotionPageId', {
+              query: message.query,
+            })) as Array<string>;
+            console.log('response from server', pageId);
+            await context.secrets.store('pages', JSON.stringify(pageId));
+            panel.webview.postMessage({
+              response: pageId,
+              type: 'NotionPagesName',
+            });
+            break;
         }
       });
     }
