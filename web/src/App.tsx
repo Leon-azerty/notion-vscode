@@ -1,8 +1,7 @@
-import {
-  VSCodeButton,
-  VSCodeTextField,
-} from '@vscode/webview-ui-toolkit/react';
+import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
+import RefreshCcwDot from './icons/refreshCcwDot.js';
+import Search from './icons/search.js';
 import RetrieveBlock from './retrieveBlock/retrieveBlock.js';
 
 declare const acquireVsCodeApi: any;
@@ -21,7 +20,6 @@ function App() {
       console.log('Réponse du serveur LSP:', message);
       if (message.pageId) setPageIdRes(message.pageId);
       else if (message.type === 'NotionPagesName') {
-        console.log('message received', message);
         setPageNames(message.response);
       }
     });
@@ -37,28 +35,28 @@ function App() {
 
   return (
     <div className="grid gap-3 p-2 place-items-start">
-      <h1>VS Code WebView</h1>
-      {pageNames.map((pageName, index) => (
-        <p key={index}>{pageName}</p>
-      ))}
-      <RetrieveBlock
-        setBlockId={setBlockId}
-        blockId={blockId}
-        vscode={vscode}
-      />
+      <div className="flex space-x-4">
+        <h1>Pages</h1>
+        <RefreshCcwDot
+          onClick={() => {
+            vscode.postMessage({
+              command: 'GetNotionPageId',
+              query: '',
+            });
+          }}
+        />
+      </div>
 
-      <div className="border">
-        <label htmlFor="search">Search</label>
+      <div className="border flex space-x-2">
         <VSCodeTextField
-          placeholder="demo ..."
+          placeholder="Search ..."
           id="search"
           onChange={(e) => {
             console.log('search', search);
             setSearch((e.target as HTMLInputElement).value);
           }}
         />
-        <VSCodeButton
-          className="bg-purple-300"
+        <Search
           onClick={() => {
             console.log('search', search);
             vscode.postMessage({
@@ -66,10 +64,19 @@ function App() {
               query: search,
             });
           }}
-        >
-          Get Notion Page ID
-        </VSCodeButton>
+        />
         <p>{pageIdRes}</p>
+      </div>
+      {pageNames.map((pageName, index) => (
+        <p key={index}>{pageName}</p>
+      ))}
+
+      <div className="border">
+        <RetrieveBlock
+          setBlockId={setBlockId}
+          blockId={blockId}
+          vscode={vscode}
+        />
       </div>
     </div>
   );

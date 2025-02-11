@@ -45,11 +45,9 @@ connection.onRequest('custom/GetNotionPageId', async (params: any) => {
     },
   });
   const pageNames: Array<string> = [];
-  // console.log('response', response);
   for (const result of response.results) {
     // @ts-ignore: Unreachable code error
     if (result.parent.type == 'workspace') {
-      // console.log('result', result);
       const page = await notion.blocks.retrieve({
         block_id: result.id,
       });

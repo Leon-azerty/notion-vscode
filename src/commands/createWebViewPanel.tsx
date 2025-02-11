@@ -44,21 +44,16 @@ export const createWebviewPanel = (
         switch (message.command) {
           case 'init':
             const pages = await context.secrets.get('pages');
-            console.log('pages du secrets', pages);
             if (pages) {
-              console.log('pages, already fetched', pages);
               panel.webview.postMessage({
                 response: JSON.parse(pages),
                 type: 'NotionPagesName',
               });
             } else {
-              console.log('pages, fetching');
               const response = (await client.sendRequest(
                 'custom/GetNotionPageId'
               )) as Array<string>;
-              console.log('response from server', response);
               await context.secrets.store('pages', JSON.stringify(response));
-              console.log('send postMessafge to webview');
               panel.webview.postMessage({
                 response,
                 type: 'NotionPagesName',
@@ -66,7 +61,6 @@ export const createWebviewPanel = (
             }
             break;
           case 'RetrieveBlock':
-            console.log('message', message);
             const token = await context.secrets.get('apiToken');
             const blocks = await client.sendRequest('custom/RetrieveBlock', {
               token: token,
