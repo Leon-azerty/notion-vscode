@@ -79,6 +79,27 @@ connection.onRequest('custom/RetrieveBlock', async (params: any) => {
 });
 
 // --------------------------------
+
+connection.onRequest('custom/GetNotionPageContent', async (params: any) => {
+  console.log('Server received params :', params);
+  const pageId = 'f627e079ed324f419a2703107fe733fa';
+  const blockId = '190c3201-03f4-803a-876a-c4aa989a18c4';
+  const page = await notion.blocks.retrieve({
+    block_id: pageId,
+  });
+  console.log('page', page);
+
+  const pageChildren = await notion.blocks.children.list({
+    block_id: blockId,
+  });
+  console.log('pageChildren', pageChildren);
+  pageChildren.results.map(async (result) => {
+    if ('to_do' in result) console.log('result.to_do', result.to_do);
+  });
+});
+
+// --------------------------------
+
 documents.listen(connection);
 connection.listen();
 

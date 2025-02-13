@@ -35,11 +35,9 @@ connection.onRequest('custom/GetNotionPageId', async (params) => {
         },
     });
     const pageNames = [];
-    // console.log('response', response);
     for (const result of response.results) {
         // @ts-ignore: Unreachable code error
         if (result.parent.type == 'workspace') {
-            // console.log('result', result);
             const page = await notion.blocks.retrieve({
                 block_id: result.id,
             });
@@ -64,6 +62,24 @@ connection.onRequest('custom/RetrieveBlock', async (params) => {
     });
     console.log('Notion res : ', res);
     return `Server received: ${params.message}`;
+});
+// --------------------------------
+connection.onRequest('custom/GetNotionPageContent', async (params) => {
+    console.log('Server received params :', params);
+    const pageId = 'f627e079ed324f419a2703107fe733fa';
+    const blockId = '190c3201-03f4-803a-876a-c4aa989a18c4';
+    const page = await notion.blocks.retrieve({
+        block_id: pageId,
+    });
+    console.log('page', page);
+    const pageChildren = await notion.blocks.children.list({
+        block_id: blockId,
+    });
+    console.log('pageChildren', pageChildren);
+    pageChildren.results.map(async (result) => {
+        if ('to_do' in result)
+            console.log('result.to_do', result.to_do);
+    });
 });
 // --------------------------------
 documents.listen(connection);

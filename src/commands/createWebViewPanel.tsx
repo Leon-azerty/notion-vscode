@@ -80,6 +80,13 @@ export const createWebviewPanel = (
               type: 'NotionPagesName',
             });
             break;
+          case 'GetNotionPageContent':
+            console.log('GetNotionPageContent, message : ', message);
+            const pageContent = await client.sendRequest(
+              'custom/GetNotionPageContent',
+              { pageName: message.pageName }
+            );
+            console.log('response from server', pageContent);
         }
       });
     }

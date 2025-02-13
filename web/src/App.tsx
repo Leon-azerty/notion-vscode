@@ -68,7 +68,18 @@ function App() {
         <p>{pageIdRes}</p>
       </div>
       {pageNames.map((pageName, index) => (
-        <p key={index}>{pageName}</p>
+        <button
+          key={index}
+          onClick={() => {
+            console.log('pageName', pageName);
+            vscode.postMessage({
+              command: 'GetNotionPageContent',
+              pageName: pageName,
+            });
+          }}
+        >
+          {pageName}
+        </button>
       ))}
 
       <div className="border">
